@@ -1,0 +1,4 @@
+kibom==1.9.0
+PyPDF2==3.0.1
+PyYAML==6.0.1
+XlsxWriter==3.1.9
