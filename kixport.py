@@ -6,6 +6,9 @@ from typing import List
 # - generate BOM + POS for JLCPCB
 # - generate variant specific schematic and fab drawing
 # - generate interactive html bom + variant specific version of it
+# - generate different versions of Gerber (i.e with or without X2 extensions)
+# - check that area fills are up to date
+# - check that there are no unrouted nets on the board
 # - generate panels
 # - generate rendered images
 # - put version number in file names
