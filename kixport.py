@@ -41,7 +41,7 @@ class Board:
 def read_version(board_pro):
     with open(board_pro, 'r') as file:
         js = json.load(file)
-    return js['text_variables']['VERSION']
+    return js['text_variables'].get('VERSION')
 
 def mk_bom_xml(board_sch, bom_filename):
     print(f"--- Exporting XML netlist")
