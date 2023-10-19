@@ -1,4 +1,4 @@
-import sys, yaml, argparse, subprocess, pathlib, os, json, zipfile, PyPDF2
+import sys, yaml, argparse, subprocess, pathlib, os, json, zipfile, PyPDF2, csv
 from dataclasses import dataclass
 from typing import List
 
@@ -98,6 +98,25 @@ def mk_step(board: Board, settings, step_path: pathlib.Path):
     subprocess.check_call(['kicad-cli', 'pcb', 'export', 'step', '--subst-models',
                            '--output', step_path, board.kicad_pcb])
 
+def mk_pos(board: Board, settings, pos_path: pathlib.Path):
+    print(f"--- Generating PnP position file (JLCPCB)")
+    subprocess.check_call(['kicad-cli', 'pcb', 'export', 'pos', '--units', 'mm',
+                           '--output', pos_path, board.kicad_pcb, '--format', pos_path.suffix[1:]])
+
+# Read the generated CSV and change to match JLCPCB expectations
+def mk_pos_jlcpcb(board: Board, settings, pos_path: pathlib.Path, jlcpcb_path: pathlib.Path):
+    with open (pos_path, 'r') as input_file, open(jlcpcb_path, 'w') as output_file:
+        input = csv.reader(input_file)
+        output = csv.writer(output_file)
+
+        # Skip first line with headers
+        next(input, None)
+        # Write the header JLCPCB expects
+        output.writerow([u'Designator', u'Val', u'Package', u'Mid X', u'Mid y', u'Rotation', u'Layer'])
+        # Copy the rest of the output
+        for row in input:
+            output.writerow(row)
+
 def build_board(board: Board, settings):
     board_version = read_version(board.kicad_pro)
     print(f'Building {board.name} {board_version}')
@@ -127,6 +146,9 @@ def build_board(board: Board, settings):
     mk_fab_pdf(board, settings, board.assembly_dir / f"{board.name}-fab.pdf")
 
     mk_step(board, settings, board.assembly_dir / f"{board.name}.step")
+
+    mk_pos(board, settings, board.build_dir / f"{board.name}-pos.csv")
+    mk_pos_jlcpcb(board, settings, board.build_dir / f"{board.name}-pos.csv", board.assembly_dir / f"{board.name}-jlcpcb-cpl.csv")
 
 def main(argv):
     with open(argv[1], 'r') as file:
